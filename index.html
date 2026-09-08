@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Can a Synapse Remember?  Synaptic Plasticity as Short-Term Memory</title>
+<meta name="description" content="An interactive learning experiment about synaptic plasticity, short-term memory, decay and interference, connected to Dragon Hatchling (BDH).">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2312151b'/%3E%3Ccircle cx='9' cy='16' r='4' fill='none' stroke='%23E8A33D' stroke-width='2'/%3E%3Cline x1='13' y1='16' x2='23' y2='10' stroke='%23E8A33D' stroke-width='2'/%3E%3Ccircle cx='25' cy='9' r='3' fill='%23E8A33D'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#12151b; --panel:#181c24; --panel-2:#1d222c; --ink:#eceff4; --muted:#8b93a5; --faint:#5b6272;
+  --line:#2a2f3a; --line-soft:#22262f;
+  --x:#e8a33d; --y:#4fd1c5; --frozen:#9b8cff;
+  --good:#59d9a0; --bad:#e8637a;
+  --serif:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype","Times New Roman",serif;
+  --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono","Liberation Mono",Menlo,Consolas,monospace;
+  --radius:9px; --focus:#e8a33d;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.6;font-size:16px}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--x)}
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+.skip-link{position:absolute;left:12px;top:-48px;background:var(--panel);color:var(--ink);padding:10px 14px;border-radius:6px;border:1px solid var(--line);z-index:100;transition:top .15s}
+.skip-link:focus{top:12px}
+.container{max-width:min(1320px,94vw);margin:auto;padding:0 24px}
+main{display:block;padding-bottom:56px}
+.topbar{padding:16px 0;border-bottom:1px solid var(--line-soft);position:sticky;top:0;z-index:10;background:rgba(18,21,27,.92);backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brandmark{display:flex;align-items:center;gap:10px}
+.brandmark svg{flex:none}
+.brandname{font-family:var(--serif);font-size:17px;letter-spacing:.01em}
+
+.hero{padding:64px 0 30px}
+.hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
+h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,5vw,54px);line-height:1.08;letter-spacing:-.01em;margin:0 0 18px;color:#fff}
+.lead{font-size:17px;color:var(--muted);max-width:52ch;margin:0 0 22px}
+.claim{border-left:2px solid var(--x);padding-left:16px;font-size:15px;color:#d7dbe4}
+.claim b{color:#fff;font-weight:600}
+.hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+.btn{border-radius:var(--radius);padding:11px 18px;font-weight:600;font-size:14.5px;transition:filter .15s,border-color .15s;border:1px solid transparent}
+.btn:disabled{opacity:.55;cursor:default}
+.primary{background:var(--x);color:#211505;border-color:var(--x)}
+.primary:hover:not(:disabled){filter:brightness(1.08)}
+.secondary{background:transparent;color:var(--ink);border-color:var(--line)}
+.secondary:hover{border-color:var(--muted)}
+.scope{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px}
+.scope svg{width:100%;height:auto;display:block}
+.scope-caption{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between}
+
+.section{padding:26px 0}
+.section.narrative{padding:44px 0;border-top:1px solid var(--line-soft)}
+.fignum{font-family:var(--mono);font-size:12px;color:var(--x);border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-right:10px;vertical-align:2px;letter-spacing:.02em}
+h2{font-family:var(--serif);font-weight:500;font-size:24px;letter-spacing:-.005em;margin:0 0 8px;color:#fff}
+h3{font-family:var(--mono);text-transform:none;font-size:13px;color:var(--muted);margin:22px 0 8px;font-weight:600}
+p.small,.small{font-size:13.5px;color:var(--muted)}
+.prose{max-width:66ch}
+
+.panel{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;min-width:0}
+.panel::before,.panel::after{content:"";position:absolute;width:9px;height:9px;border-color:var(--faint);opacity:.55}
+.panel::before{top:-1px;left:-1px;border-top:1.5px solid var(--faint);border-left:1.5px solid var(--faint)}
+.panel::after{bottom:-1px;right:-1px;border-bottom:1.5px solid var(--faint);border-right:1.5px solid var(--faint)}
+.grid{display:grid;grid-template-columns:1.12fr .88fr;gap:16px;align-items:start}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;margin-top:18px}
+@media(max-width:900px){.grid3{grid-template-columns:1fr}}
+
+.choice{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.choice button{padding:11px;border:1px solid var(--line);background:var(--panel-2);border-radius:7px;font-weight:500;font-size:13.5px;color:var(--ink)}
+.choice button:hover{border-color:var(--muted)}
+.choice button.selected{border-color:var(--x);background:rgba(232,163,61,.1);color:#fff}
+@media(max-width:600px){.choice{grid-template-columns:1fr}}
+
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0}
+.control{border:1px solid var(--line-soft);border-radius:8px;padding:13px;background:var(--panel-2);min-width:0}
+.control label{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:7px;font-size:13.5px;color:var(--muted)}
+.control label > .infotip{grid-column:2}
+.control label > .value{grid-column:3}
+.control .param-name{grid-column:1;min-width:0;white-space:nowrap}
+.value{font-family:var(--mono);color:var(--x);font-size:13.5px;white-space:nowrap}
+input[type=range]{width:100%;margin-top:10px;accent-color:var(--x)}
+.infotip{position:relative;display:inline-flex;align-items:center}
+.infotip button{width:16px;height:16px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;font-weight:700;display:grid;place-items:center;padding:0;margin-left:6px}
+.infotip .bubble{display:none;position:absolute;left:0;top:22px;z-index:5;width:220px;background:#0d0f14;color:#dde1e9;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:12px;line-height:1.5}
+.infotip.open .bubble{display:block}
+
+.actionrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.status{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.stat{border:1px solid var(--line-soft);border-radius:8px;padding:11px 13px;background:var(--panel-2)}
+.stat .label{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.stat .num{font-family:var(--mono);font-size:22px;font-weight:600;margin-top:2px;color:#fff}
+
+.result{margin-top:14px;padding:15px 16px;border-radius:8px;border:1px solid var(--line-soft);background:var(--panel-2)}
+.result.success{border-color:rgba(89,217,160,.4)}
+.result.fail{border-color:rgba(232,99,122,.4)}
+.result .big{font-family:var(--mono);font-size:16px;color:#fff}
+.result .big .tag{font-family:var(--sans);font-size:10.5px;text-transform:uppercase;letter-spacing:.03em;font-weight:700;border-radius:5px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+.result.success .tag{background:rgba(89,217,160,.15);color:var(--good)}
+.result.fail .tag{background:rgba(232,99,122,.15);color:var(--bad)}
+
+.trace{display:flex;flex-direction:column;gap:6px;margin-top:10px;max-height:170px;overflow-y:auto;padding-right:12px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.trace::-webkit-scrollbar{width:7px}
+.trace::-webkit-scrollbar-track{background:transparent}
+.trace::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+.trace::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+.trace-empty{font-size:13px;color:var(--muted)}
+.trace-item{display:flex;align-items:center;justify-content:space-between;font-size:13px;border-bottom:1px solid var(--line-soft);padding:6px 2px}
+.trace-item .ev{font-family:var(--mono);color:var(--ink)}
+.trace-item .t{font-family:var(--mono);color:var(--muted);font-size:11px}
+
+.matrix-wrap{overflow:auto}
+.matrix{display:grid;grid-template-columns:52px repeat(4,minmax(64px,1fr));min-width:380px;gap:6px;margin-top:14px}
+.cell,.head{min-height:56px;border-radius:6px;display:grid;place-items:center}
+.head{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.cell{border:1px solid var(--line-soft);font-family:var(--mono);font-weight:600;font-size:14px;color:var(--ink);transition:background .35s,transform .2s;position:relative}
+.cell.rowA{border-color:#3a3f4d}
+.cell.justwrote{animation:cellpulse .55s ease}
+@keyframes cellpulse{0%{transform:scale(1)}35%{transform:scale(1.1)}100%{transform:scale(1)}}
+
+.compare-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.compare-item{flex:1;min-width:120px;border:1px solid var(--line-soft);border-radius:7px;padding:10px 12px;background:var(--panel-2)}
+.compare-item.winner{border-color:var(--x)}
+.compare-item .k{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.compare-item .v{font-family:var(--mono);font-size:18px;font-weight:600;color:#fff}
+
+
+/* --- High-contrast live synaptic view --- */
+.net{
+  margin:18px 0 10px;
+  border:1px solid rgba(232,163,61,.32);
+  border-radius:12px;
+  background:
+    radial-gradient(circle at 18% 50%, rgba(232,163,61,.10), transparent 30%),
+    radial-gradient(circle at 82% 30%, rgba(79,209,197,.10), transparent 30%),
+    #111722;
+  padding:12px;
+  box-shadow:inset 0 0 28px rgba(0,0,0,.22), 0 0 0 1px rgba(79,209,197,.04);
+}
+.net svg{width:100%;height:156px;display:block;overflow:visible}
+.net text{font-family:var(--mono);font-size:12px;fill:#f4f6fa;font-weight:700}
+.net circle.node{
+  transition:r .3s,fill .3s,stroke .3s,filter .3s;
+  fill:#202734;
+  stroke:#697386;
+  stroke-width:2.5;
+}
+.net circle.node.fired{
+  animation:nodepulse .55s ease;
+}
+.net circle#nodeA{
+  fill:rgba(232,163,61,.16);
+  stroke:#e8a33d;
+  filter:drop-shadow(0 0 5px rgba(232,163,61,.25));
+}
+.net circle#nodeX{
+  fill:rgba(232,163,61,.12);
+  stroke:#e8a33d;
+}
+.net circle#nodeY{
+  fill:rgba(79,209,197,.12);
+  stroke:#4fd1c5;
+}
+.net line{
+  transition:opacity .4s,stroke-width .4s,filter .4s;
+}
+.net + .small{
+  padding:9px 11px;
+  border:1px solid var(--line-soft);
+  border-radius:7px;
+  background:rgba(255,255,255,.025);
+}
+.compare-row{margin-top:14px}
+.compare-item{
+  transition:border-color .25s,box-shadow .25s,transform .25s;
+}
+.compare-item:first-child{
+  border-color:rgba(232,163,61,.25);
+}
+.compare-item:nth-child(2){
+  border-color:rgba(79,209,197,.25);
+}
+.compare-item.winner{
+  transform:translateY(-1px);
+  box-shadow:0 0 18px rgba(232,163,61,.10);
+}
+.compare-item:nth-child(2).winner{
+  box-shadow:0 0 18px rgba(79,209,197,.12);
+}
+
+.net{margin:18px 0 8px;border:1px solid var(--line-soft);border-radius:8px;background:var(--panel-2);padding:10px}
+.net svg{width:100%;height:140px;display:block}
+.net text{font-family:var(--mono);font-size:11px;fill:#c7cdda}
+.net circle.node{transition:r .3s;fill:var(--panel-2);stroke:#4a5162;stroke-width:2}
+.net circle.node.fired{animation:nodepulse .5s ease}
+@keyframes nodepulse{0%{filter:drop-shadow(0 0 0 rgba(232,163,61,0))}40%{filter:drop-shadow(0 0 7px rgba(232,163,61,.65))}100%{filter:drop-shadow(0 0 0 rgba(232,163,61,0))}}
+.net line{transition:opacity .4s,stroke-width .4s}
+
+canvas{width:100%;height:260px;border:1px solid var(--line-soft);border-radius:8px;background:var(--panel-2);display:block;max-width:100%}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin:9px 0 0;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:var(--x)}
+.dot2{background:var(--y)}
+
+.stepper-row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+.iconbtn{width:32px;height:32px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);font-weight:700;font-size:15px;line-height:1}
+.iconbtn:hover{border-color:var(--muted)}
+.count{font-family:var(--mono);min-width:26px;text-align:center;font-weight:700;font-size:16px}
+.tstamp{font-family:var(--mono);font-weight:600;background:var(--panel-2);border:1px solid var(--line-soft);color:var(--x);border-radius:6px;padding:3px 9px;font-size:13px}
+
+.timeline{display:flex;gap:0;margin-top:20px;border-top:1px solid var(--line-soft)}
+.phase{flex:1;padding:14px 10px 0;border-left:1px solid var(--line-soft)}
+.phase:first-child{border-left:none}
+.phase b{display:block;font-family:var(--mono);font-size:13px;color:#fff}
+.phase span{font-size:11.5px;color:var(--muted)}
+@media(max-width:700px){.timeline{flex-wrap:wrap}.phase{flex:1 1 40%;border-left:none;border-top:1px solid var(--line-soft);padding-top:10px}}
+
+.evidence{border-left:2px solid var(--line);padding-left:15px;margin-top:0;min-width:0}
+.evidence .lvl{display:block;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px}
+.evidence.l1{border-color:#5b6272}
+.evidence.l2{border-color:var(--y)}
+.evidence.l3{border-color:var(--x)}
+.evidence.l1 .lvl{color:#8b93a5}
+.evidence.l2 .lvl{color:var(--y)}
+.evidence.l3 .lvl{color:var(--x)}
+
+.notice{padding:12px 15px;border-radius:7px;background:rgba(232,163,61,.08);border:1px solid rgba(232,163,61,.3);color:#e8c98a;font-size:13px}
+.equation{font-family:var(--mono);font-size:clamp(15px,2.4vw,20px);color:#fff;text-align:center;padding:22px 10px;border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);margin:18px 0}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+@media(max-width:760px){
+ .grid,.hero-grid{grid-template-columns:1fr}.controls{grid-template-columns:1fr}
+ .hero{padding-top:40px} .panel{padding:14px} .status{grid-template-columns:1fr 1fr} .compare-row{flex-direction:column}
+ .scope-caption{flex-direction:column;gap:4px}
+ .control label{grid-template-columns:minmax(0,1fr) auto auto;gap:7px;font-size:13px;align-items:center}
+ .control .value{font-size:12.5px;white-space:nowrap}
+ .infotip .bubble{left:auto;right:0;width:min(240px,calc(100vw - 40px))}
+ canvas{height:clamp(235px,62vw,270px)}
+ .legend{gap:8px;font-size:10.5px;line-height:1.7;row-gap:2px}
+ .stepper-row{gap:7px}
+}
+
+.live-view-label{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-top:16px;
+  margin-bottom:-8px;
+  font-family:var(--mono);
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.08em;
+  color:#e9edf5;
+}
+.live-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:#59d9a0;
+  box-shadow:0 0 9px rgba(89,217,160,.8);
+  animation:liveblink 1.5s ease-in-out infinite;
+}
+.live-hint{
+  font-weight:500;
+  letter-spacing:0;
+  color:var(--muted);
+}
+@keyframes liveblink{0%,100%{opacity:.55}50%{opacity:1}}
+@media(max-width:520px){
+  .live-view-label{font-size:9.5px;flex-wrap:wrap}
+  .live-hint{width:100%;margin-left:14px;margin-top:-3px}
+  .net svg{height:145px}
+}
+@media(prefers-reduced-motion:reduce){
+  .live-dot{animation:none}
+}
+
+</style>
+</head>
+<body>
+<a href="#lab" class="skip-link">Skip to the interactive lab</a>
+<header class="topbar">
+  <div class="container brand">
+    <div class="brandmark">
+      <svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#181c24" stroke="#2a2f3a"/><circle cx="9" cy="16" r="4" fill="none" stroke="#E8A33D" stroke-width="2"/><line x1="13" y1="16" x2="23" y2="10" stroke="#E8A33D" stroke-width="2"/><circle cx="25" cy="9" r="3" fill="#E8A33D"/></svg>
+      <span class="brandname">Synaptic Memory Lab</span>
+    </div>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+<div class="container hero-grid">
+  <div>
+    <h1>Can a synapse remember?</h1>
+    <p class="lead">Teach a tiny network. Change what it remembers. Watch decay and interference turn memory into a live trade-off, from numbers you choose.</p>
+    <p class="claim"><b>Central claim.</b> Recent neural activity can temporarily change synaptic strength, letting a small network store short-term associations  but decay and competing writes can make those memories interfere.</p>
+    <div class="hero-actions">
+      <button class="btn primary" onclick="runExperiment()">Run the 60-second experiment</button>
+      <button class="btn secondary" onclick="document.getElementById('lab').scrollIntoView()">Explore manually</button>
+    </div>
+  </div>
+  <div class="scope">
+    <svg id="heroTrace" viewBox="0 0 320 140" role="img" aria-label="A decaying synaptic strength curve, the same computation used throughout this lab">
+      <line x1="20" y1="20" x2="20" y2="115" stroke="#2a2f3a" stroke-width="1"/>
+      <line x1="20" y1="115" x2="305" y2="115" stroke="#2a2f3a" stroke-width="1"/>
+      <path id="heroPath" d="M20,30 C 80,55 140,90 305,112" fill="none" stroke="#E8A33D" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="20" cy="30" r="3.5" fill="#E8A33D"/>
+    </svg>
+    <div class="scope-caption"><span>w(t) = retention · w(t−1)</span><span>live signal, not an illustration</span></div>
+  </div>
+</div>
+</section>
+
+<section class="section" id="lab">
+<div class="container">
+<div class="section narrative" style="padding-top:0;border-top:none">
+  <h2><span class="fignum">01</span>Before you write: what do you expect?</h2>
+  <p class="small prose">If retention drops from <b style="color:#fff">0.94</b> to <b style="color:#fff">0.60</b>, what should happen to a memory that is not refreshed?</p>
+  <div class="choice" id="predictionChoices" role="group" aria-label="Prediction choices">
+    <button onclick="choosePrediction(this,'fade')">It fades faster</button>
+    <button onclick="choosePrediction(this,'same')">It stays about the same</button>
+    <button onclick="choosePrediction(this,'stronger')">It gets stronger</button>
+  </div>
+  <div id="predictionFeedback" class="small" style="margin-top:10px" role="status" aria-live="polite"></div>
+</div>
+
+<div class="grid" style="margin-top:6px">
+<div class="panel">
+  <h2><span class="fignum">02</span>Write a short-term association</h2>
+  <p class="small">Each write updates the toy synaptic state. Try A → X, then overwrite it with A → Y.</p>
+  <div class="controls">
+    <div class="control">
+      <label for="lr"><span class="param-name">learning rate η</span>
+        <span class="infotip" id="lrTip">
+          <button type="button" aria-expanded="false" aria-label="What is learning rate?" onclick="toggleTip('lrTip')">i</button>
+          <span class="bubble" role="tooltip">How strongly new activity writes into synaptic state. Higher η = a single write pushes the synapse further.</span>
+        </span>
+        <span class="value" id="lrVal">0.30</span>
+      </label>
+      <input id="lr" type="range" min=".05" max=".60" step=".01" value=".30" oninput="updateParams()" aria-describedby="lrVal">
+    </div>
+    <div class="control">
+      <label for="ret"><span class="param-name">retention / step</span>
+        <span class="infotip" id="retTip">
+          <button type="button" aria-expanded="false" aria-label="What is retention?" onclick="toggleTip('retTip')">i</button>
+          <span class="bubble" role="tooltip">How much of the previous synaptic strength survives one time step. Lower retention = faster forgetting.</span>
+        </span>
+        <span class="value" id="retVal">0.94</span>
+      </label>
+      <input id="ret" type="range" min=".60" max=".99" step=".01" value=".94" oninput="updateParams()" aria-describedby="retVal">
+    </div>
+  </div>
+  <div class="actionrow">
+    <button class="btn primary" onclick="writeAssoc('A','X')">Write A → X</button>
+    <button class="btn secondary" onclick="writeAssoc('A','Y')">Compete with A → Y</button>
+    <button class="btn secondary" onclick="query()">Query A</button>
+    <button class="btn secondary" onclick="advanceTime()">Advance time (t+1)</button>
+    <button class="btn secondary" onclick="resetAll()">Reset</button>
+  </div>
+  <div class="status">
+    <div class="stat"><div class="label">writes</div><div class="num" id="writes">0</div></div>
+    <div class="stat"><div class="label">time steps</div><div class="num" id="ticks">0</div></div>
+  </div>
+  <div class="result" id="result" role="status" aria-live="polite"><div class="big">No memory queried yet.</div><div class="small">The strongest outgoing synapse from A will determine the toy model's prediction.</div></div>
+
+  <h3>memory trace</h3>
+  <p class="small">Every write and time step, in order  so the current synaptic state is never a mystery.</p>
+  <div class="trace" id="trace" aria-live="polite">
+    <div class="trace-empty">No events yet. Write an association to begin.</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2><span class="fignum">03</span>Synaptic state, made visible</h2>
+  <p class="small">Each cell is the current strength of one cue → target connection. Row A is highlighted because every control above acts on cue A.</p>
+  <div class="matrix-wrap"><div class="matrix" id="matrix" role="img" aria-label="4 by 4 synaptic strength matrix; see the text comparison below for exact values"></div></div>
+
+  <div class="compare-row" id="abCompare" aria-live="polite">
+    <div class="compare-item" id="compareX"><div class="k">A → X</div><div class="v" id="valX">0.00</div></div>
+    <div class="compare-item" id="compareY"><div class="k">A → Y</div><div class="v" id="valY">0.00</div></div>
+  </div>
+  <p class="small" id="winnerLine" style="margin-top:8px">No association written yet  both connections start at zero.</p>
+
+  <div class="live-view-label" aria-hidden="true"><span class="live-dot"></span> LIVE SYNAPTIC VIEW <span class="live-hint">connection strength updates in real time</span></div>
+  <div class="net">
+    <svg viewBox="0 0 520 150" role="img" aria-label="Live synaptic view: cue neuron A connected to target neurons X and Y; line thickness and brightness show current synaptic strength">
+      <line id="lineX" x1="105" y1="70" x2="395" y2="42" stroke="#E8A33D" stroke-width="4" opacity=".15"/>
+      <line id="lineY" x1="105" y1="70" x2="395" y2="104" stroke="#4FD1C5" stroke-width="4" opacity=".15"/>
+      <circle class="node" id="nodeA" cx="95" cy="70" r="27" stroke-width="2"/>
+      <circle class="node" id="nodeX" cx="405" cy="42" r="23" stroke-width="2"/>
+      <circle class="node" id="nodeY" cx="405" cy="104" r="23" stroke-width="2"/>
+      <text x="82" y="74">A</text><text x="398" y="46">X</text><text x="398" y="108">Y</text>
+    </svg>
+  </div>
+  <div class="small"><b style="color:#fff">Live view:</b> brighter + thicker = stronger current association. <span style="color:#e8a33d">Orange</span> is A → X; <span style="color:#4fd1c5">teal</span> is A → Y. This view is computed from the same matrix above, not a separate illustration.</div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="section">
+<div class="container grid">
+<div class="panel">
+  <h2><span class="fignum">04</span>Decay experiment</h2>
+  <p class="small">A memory can persist without being permanent. Step through time yourself, or run the full sweep.</p>
+  <div class="stepper-row" role="group" aria-label="Advance decay time step by step">
+    <button class="iconbtn" onclick="stepDecayDemo(-1)" aria-label="Step back">−</button>
+    <span class="tstamp">t = <span id="decayT">0</span></span>
+    <button class="iconbtn" onclick="stepDecayDemo(1)" aria-label="Step forward">+</button>
+    <span class="small">strength at this step: <b style="color:#fff" id="decayVal">0.30</b></span>
+  </div>
+  <canvas id="decayChart" width="760" height="260"></canvas>
+  <div class="legend"><span><i class="dot"></i>A → X strength</span><span>&nbsp;· y: normalized strength · x: time steps</span></div>
+  <button class="btn secondary" style="margin-top:12px" onclick="runDecay(this)">Run full decay sweep</button>
+  <div id="decayStatus" class="small" style="margin-top:9px;min-height:20px" role="status" aria-live="polite">Ready  change retention and run again.</div>
+</div>
+<div class="panel">
+  <h2><span class="fignum">05</span>Interference experiment</h2>
+  <p class="small">Choose how many competing A → Y writes to apply, then see A → X and A → Y respond.</p>
+  <div class="stepper-row" role="group" aria-label="Choose number of competing writes">
+    <button class="iconbtn" onclick="setInterferenceN(interferenceN-1)" aria-label="Fewer competing writes">−</button>
+    <span class="count" id="interferenceCount">3</span>
+    <button class="iconbtn" onclick="setInterferenceN(interferenceN+1)" aria-label="More competing writes">+</button>
+    <span class="small">competing A → Y writes</span>
+  </div>
+  <canvas id="interferenceChart" width="760" height="260"></canvas>
+  <div class="legend"><span><i class="dot"></i>A → X</span><span>&nbsp;<i class="dot dot2"></i>A → Y</span><span>&nbsp;· y: normalized strength · x: competing writes</span></div>
+  <button class="btn secondary" style="margin-top:12px" onclick="runInterference(this)">Redraw interference sweep</button>
+  <div id="interferenceStatus" class="small" style="margin-top:9px;min-height:20px" role="status" aria-live="polite">Ready  change the controls and run again.</div>
+</div>
+</div>
+</section>
+
+<section class="section">
+<div class="container">
+<div class="panel">
+  <h2><span class="fignum">06</span>Plastic memory vs. frozen memory</h2>
+  <p class="small">We test the same toy update under a changing environment: first A → X, then A → Y. Plasticity can take a few writes to adapt; frozen memory cannot adapt at all.</p>
+  <canvas id="compareChart" width="1100" height="270"></canvas>
+  <div class="legend">
+  <span><i class="dot"></i>Plastic memory · recall accuracy</span>
+  <span><i class="dot" style="background:#9B8CFF"></i>Frozen memory · recall accuracy</span>
+  <span>· <b style="color:#d7dbe4">x-axis:</b> experiment steps · A → X → A → Y switch</span>
+</div>
+  <button class="btn primary" style="margin-top:12px" onclick="runComparison(this)">Run comparison</button>
+  <div id="comparisonStatus" class="small" style="margin-top:9px;min-height:20px" role="status" aria-live="polite">Ready  run the counterfactual comparison.</div>
+  <div class="stat" style="margin-top:14px;max-width:320px">
+    <div class="label">adaptation delay</div>
+    <div class="num" id="adaptDelay" style="font-size:16px">Run comparison to measure</div>
+  </div>
+  <p class="small" style="margin-top:6px">Writes needed after the switch before A → Y overtook A → X  the concrete cost of plasticity's flexibility.</p>
+</div>
+</div>
+</section>
+
+<section class="section narrative">
+<div class="container">
+  <h2><span class="fignum">07</span>A tiny model of a plastic synapse</h2>
+  <div class="grid" style="margin-top:14px">
+    <div class="panel">
+      <h3 style="margin-top:0">the toy update rule</h3>
+      <p class="small">For this learning artifact, we use a simplified Hebbian-style update:</p>
+      <div class="equation">w(t+1) = retention × w(t) + η × pre(t) × post(t)</div>
+      <p class="small">Here <b style="color:#fff">η</b> controls the size of a write, retention controls decay, and <b style="color:#fff">pre × post</b> represents coincident activity in this simplified model.</p>
+    </div>
+    <div class="panel">
+      <h3 style="margin-top:0">scope note</h3>
+      <div class="notice"><b>Scientific boundary.</b> This equation is an educational simplification. It is not the complete BDH update rule and is not a full biological model of synaptic plasticity.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="section narrative">
+<div class="container">
+  <h2><span class="fignum">08</span>Why put memory in synapses?</h2>
+  <p class="prose">Our experiment isolates one idea: recent activity can modify a synaptic state, and that state can influence later computation. We separate three levels of evidence so nothing here is overclaimed.</p>
+
+  <div class="grid3">
+    <div class="evidence l1">
+      <span class="lvl">level 1  our toy model</span>
+      A 4×4 associative matrix with a hand-written Hebbian-style update rule, built for this artifact. Every number above came from this live computation, not from BDH.
+    </div>
+    <div class="evidence l2">
+      <span class="lvl">level 2  research literature</span>
+      Short-term synaptic plasticity as a computational memory mechanism is an active ML research area: Rodriguez, Guo &amp; Moraitis (ICML 2022) built recurrent units whose synapses carry transient state explicitly framed around learning and forgetting; Brito &amp; Gerstner (2024) study plasticity rules for extracting structure from correlated input.
+    </div>
+    <div class="evidence l3">
+      <span class="lvl">level 3  Dragon Hatchling (BDH)</span>
+      Kosowski et al. (2025) state that BDH's working memory during inference relies on synaptic plasticity with Hebbian learning using spiking neurons, and report that individual synapses measurably strengthen when BDH processes specific concepts. What's actually changing in BDH is activity-driven synaptic state, not the model's trained parameters.
+    </div>
+  </div>
+
+  <p class="small prose" style="margin-top:16px"><b style="color:#fff">Evidence boundary.</b> Our experiment isolates one mechanism relevant to the BDH design. It does not reproduce BDH's neuron dynamics, graph structure, training procedure or benchmark performance, and it is not run on any BDH checkpoint. This artifact ≠ BDH.</p>
+</div>
+</section>
+
+<section class="section narrative">
+<div class="container">
+  <h2><span class="fignum">09</span>The failure is the lesson</h2>
+  <div class="timeline">
+    <div class="phase"><b>write</b><span>activity changes state</span></div>
+    <div class="phase"><b>recall</b><span>state guides output</span></div>
+    <div class="phase"><b>decay</b><span>old state weakens</span></div>
+    <div class="phase"><b>interfere</b><span>new writes compete</span></div>
+    <div class="phase"><b>trade-off</b><span>adapt vs. preserve</span></div>
+  </div>
+  <div id="knowledge" class="panel" style="margin-top:22px">
+    <div class="big" style="font-family:var(--serif);font-size:18px;color:#fff">One last check</div>
+    <div class="small">Which statement best captures the experiment?</div>
+    <div class="choice" role="group" aria-label="Knowledge check">
+      <button onclick="knowledge(this,true)">Plasticity lets state change with recent activity.</button>
+      <button onclick="knowledge(this,false)">A synapse permanently stores every association.</button>
+      <button onclick="knowledge(this,false)">Our toy model is the complete BDH algorithm.</button>
+    </div>
+    <div id="knowledgeFeedback" class="small" style="margin-top:10px" role="status" aria-live="polite"></div>
+  </div>
+</div>
+</section>
+</main>
+
+<script>
+const cues=['A','B','C','D'], targets=['X','Y','Z','W'];
+let W=[], truth={}, writes=0, ticks=0, prediction=null;
+let events=[]; // memory trace log
+let interferenceN=3;
+let decayStep=0, decayBase=0.3, decayRet=0.94;
+const $=id=>document.getElementById(id);
+const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function fresh(){return Array.from({length:4},()=>Array(4).fill(0))}
+
+function logEvent(label){
+  events.unshift({label, t: ticks, w: writes});
+  events = events.slice(0,8);
+  renderTrace();
+}
+function renderTrace(){
+  const el=$('trace');
+  if(events.length===0){ el.innerHTML='<div class="trace-empty">No events yet. Write an association to begin.</div>'; return; }
+  el.innerHTML = events.map(e=>`<div class="trace-item"><span class="ev">${e.label}</span><span class="t">writes:${e.w} · t:${e.t}</span></div>`).join('');
+}
+
+function resetAll(){
+  W=fresh();truth={};writes=0;ticks=0;events=[];
+  decayStep=0; decayBase=params().lr; decayRet=params().ret;
+  render();
+  $('result').className='result';
+  $('result').innerHTML='<div class="big">No memory queried yet.</div><div class="small">The strongest outgoing synapse from A will determine the toy model\u2019s prediction.</div>';
+  updateLines();
+  renderTrace();
+  renderDecayStep();
+  $('adaptDelay').textContent='Run comparison to measure';
+}
+
+function params(){return {lr:+$('lr').value,ret:+$('ret').value}}
+
+/* Keep parameter readouts and dependent experiment charts live while the
+   learner moves either slider. The current synaptic state is not rewritten;
+   the new parameters apply to the next write/time step and the experiments. */
+function updateParams(){
+  const p=params();
+  $('lrVal').textContent=p.lr.toFixed(2);
+  $('retVal').textContent=p.ret.toFixed(2);
+
+  // Keep the step-through decay display synchronized with the new settings.
+  decayBase=p.lr;
+  decayRet=p.ret;
+  renderDecayStep();
+
+  // Recompute the parameterized sweeps immediately.
+  runDecay();
+  runInterference();
+
+  // If the learner has already run the comparison, recompute it with the
+  // new parameters; otherwise keep its initial prompt.
+  if($('compareChart').dataset.hasComparison==='1') runComparison();
+}
+
+function decay(){let r=params().ret; for(let i=0;i<4;i++)for(let j=0;j<4;j++)W[i][j]*=r; ticks++}
+
+function writeAssoc(c,t){
+  decay();
+  let i=cues.indexOf(c),j=targets.indexOf(t),lr=params().lr;
+  W[i][j]=Math.min(1,W[i][j]+lr); truth[c]=t; writes++;
+  render();
+  updateLines();
+  logEvent(`Write ${c} → ${t}`);
+  pulseCell(i,j);
+  pulseNet(t);
+}
+
+function pulseCell(i,j){
+  const cell = $('matrix').querySelectorAll('.cell')[i*4+j];
+  if(!cell) return;
+  cell.classList.remove('justwrote'); void cell.offsetWidth; cell.classList.add('justwrote');
+}
+function pulseNet(t){
+  if(prefersReducedMotion) return;
+  const nodeA=$('nodeA'), nodeTarget = t==='X'?$('nodeX'): t==='Y'?$('nodeY'):null;
+  [nodeA,nodeTarget].forEach(n=>{ if(!n) return; n.classList.remove('fired'); void n.offsetWidth; n.classList.add('fired'); });
+}
+
+function advanceTime(){
+  decay();
+  render();
+  updateLines();
+  logEvent('Advance time');
+}
+
+function query(){
+ let i=0, row=W[i];
+ let j=row.indexOf(Math.max(...row)), out=targets[j], gt=truth['A'];
+ let ok=gt===out && Math.max(...row)>0.02;
+ $('result').className='result '+(ok?'success':'fail');
+ $('result').innerHTML=`<div class="big">Model recalls <b>${out}</b><span class="tag">${ok?'Match':'Mismatch'}</span>${gt?` · intended target: <b>${gt}</b>`:''}</div><div class="small">${ok?'The current strongest synapse agrees with the latest taught association.':'The strongest connection no longer matches the intended association  a visible failure caused by decay/interference.'}</div>`;
+ updateLines(j);
+ logEvent('Query A');
+}
+
+function render(){
+ $('writes').textContent=writes;$('ticks').textContent=ticks;
+ $('lrVal').textContent=params().lr.toFixed(2);$('retVal').textContent=params().ret.toFixed(2);
+ const m=$('matrix');
+ m.innerHTML='<div class="head"></div>'+targets.map(t=>`<div class="head">${t}</div>`).join('');
+ for(let i=0;i<4;i++){
+   m.innerHTML+=`<div class="head">${cues[i]}</div>`;
+   for(let j=0;j<4;j++){
+     let v=W[i][j];
+     const rowClass = i===0 ? ' rowA' : '';
+     m.innerHTML+=`<div class="cell${rowClass}" style="background:rgba(232,163,61,${(0.05+v*.35).toFixed(2)})">${v.toFixed(2)}</div>`;
+   }
+ }
+ updateComparePanel();
+}
+
+function updateComparePanel(){
+ const x=W[0][0], y=W[0][1];
+ $('valX').textContent=x.toFixed(2);
+ $('valY').textContent=y.toFixed(2);
+ $('compareX').classList.toggle('winner', x>y);
+ $('compareY').classList.toggle('winner', y>x && y>0);
+ if(x===0 && y===0){
+   $('winnerLine').textContent='No association written yet  both connections start at zero.';
+ } else if(x===y){
+   $('winnerLine').textContent=`A → X and A → Y are tied at ${x.toFixed(2)}  recall would be ambiguous.`;
+ } else {
+   const winner = x>y ? 'X' : 'Y';
+   const gap = Math.abs(x-y).toFixed(2);
+   $('winnerLine').innerHTML=`<b style="color:#fff">A → ${winner}</b> currently wins by ${gap}  that is the association the model will recall.`;
+ }
+}
+
+function updateLines(active){
+ let x=W[0][0],y=W[0][1];
+ $('lineX').setAttribute('opacity',(.10+x*.82).toFixed(2));$('lineX').setAttribute('stroke-width',(2+x*8).toFixed(1));
+ $('lineY').setAttribute('opacity',(.10+y*.82).toFixed(2));$('lineY').setAttribute('stroke-width',(2+y*8).toFixed(1));
+}
+
+function toggleTip(id){
+ const el=$(id);
+ const btn=el.querySelector('button');
+ const open=el.classList.toggle('open');
+ btn.setAttribute('aria-expanded', open ? 'true':'false');
+}
+
+function choosePrediction(el,ans){
+ document.querySelectorAll('#predictionChoices button').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');prediction=ans;
+ $('predictionFeedback').textContent=ans==='fade'?'Good prediction. Run the decay experiment below to test it.':'Interesting prediction. Now run the experiment and compare it with what happens.';
+}
+
+function knowledge(el,correct){
+ document.querySelectorAll('#knowledge .choice button').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');
+ $('knowledgeFeedback').textContent = correct ? 'Correct  the state changes with recent activity, and that is exactly what makes it useful and fragile.' : 'Not quite  revisit the write/decay/interference steps above, then try again.';
+}
+
+function runExperiment(){
+ resetAll();
+ setTimeout(()=>writeAssoc('A','X'),150);
+ setTimeout(()=>writeAssoc('A','X'),450);
+ setTimeout(()=>query(),750);
+ setTimeout(()=>writeAssoc('A','Y'),1050);
+ setTimeout(()=>writeAssoc('A','Y'),1350);
+ setTimeout(()=>writeAssoc('A','Y'),1650);
+ setTimeout(()=>writeAssoc('A','Y'),1950);
+ setTimeout(()=>query(),2250);
+ setTimeout(()=>document.getElementById('interferenceChart').scrollIntoView({behavior:'smooth',block:'center'}),2550);
+}
+
+function pulseButton(btn,doneText){
+ const original=btn.textContent;
+ btn.disabled=true; btn.textContent='Running…';
+ setTimeout(()=>{btn.disabled=false;btn.textContent=doneText||original},550);
+}
+
+// --- Decay: full sweep chart (unchanged core math) + new manual stepper ---
+function decaySeries(){
+  let ret=params().ret, vals=[], v=params().lr;
+  for(let t=0;t<=12;t++){vals.push(v);v*=ret}
+  return vals;
+}
+function runDecay(btn){
+ if(btn) pulseButton(btn,'Decay complete ✓');
+ decayBase=params().lr; decayRet=params().ret; decayStep=0;
+ let c=$('decayChart'),vals=decaySeries();
+ animateChart(c,[{vals,label:'A → X'}],['#E8A33D'], 'decayStatus', `Retention ${params().ret.toFixed(2)} · starting strength ${params().lr.toFixed(2)}`, {yLabel:'Synaptic strength (01)', xLabel:'time steps', xTicks:[0,1,2,3,4,5,6,7,8,9,10,11,12]});
+ renderDecayStep();
+}
+function renderDecayStep(){
+ $('decayT').textContent=decayStep;
+ const val = decayBase * Math.pow(decayRet, decayStep);
+ $('decayVal').textContent = val.toFixed(3);
+}
+function stepDecayDemo(dir){
+ decayStep = Math.max(0, Math.min(12, decayStep+dir));
+ renderDecayStep();
+}
+
+// --- Interference: sweep chart is unchanged math; adds learner-controlled N marker ---
+function interferenceSeries(){
+ let x=[],y=[],lr=params().lr,ret=params().ret;
+ for(let n=0;n<=8;n++){
+   let a=lr,b=0;
+   for(let k=0;k<n;k++){a*=ret;b*=ret;b=Math.min(1,b+lr)}
+   x.push(a);y.push(b);
+ }
+ return {x,y};
+}
+function setInterferenceN(n){
+ interferenceN = Math.max(0, Math.min(8, n));
+ $('interferenceCount').textContent = interferenceN;
+ runInterference();
+}
+function runInterference(btn){
+ if(btn) pulseButton(btn,'Interference complete ✓');
+ let c=$('interferenceChart'); const {x,y}=interferenceSeries();
+ animateChart(c,[{vals:x,label:'A → X'},{vals:y,label:'A → Y'}],['#E8A33D','#4FD1C5'], 'interferenceStatus', `At N=${interferenceN}: A→X=${x[interferenceN].toFixed(2)}, A→Y=${y[interferenceN].toFixed(2)} · retention ${params().ret.toFixed(2)} · η ${params().lr.toFixed(2)}`, {markIndex:interferenceN, yLabel:'Synaptic strength (01)', xLabel:'competing writes', xTicks:[0,1,2,3,4,5,6,7,8]});
+}
+
+function runComparison(btn){
+ $('compareChart').dataset.hasComparison='1';
+ if(btn) pulseButton(btn,'Comparison complete ✓');
+ const c=$('compareChart');
+ const plastic=[], frozen=[];
+ const lr=params().lr, ret=params().ret;
+ let x=0,y=0;
+ let flipStep=null;
+ /*
+   Same toy update as the main lab:
+   w <- retention*w, then add learning rate to the active association.
+   During steps 04 the environment teaches A→X.
+   During steps 59 it switches to A→Y.
+   Plastic recall is correct when the strongest synapse matches the
+   current target. Frozen recall keeps the old X association.
+ */
+ for(let t=0;t<10;t++){
+   x*=ret; y*=ret;
+   if(t<5) x=Math.min(1,x+lr);
+   else { y=Math.min(1,y+lr); if(flipStep===null && y>=x) flipStep = t-4; }
+   const target=t<5?'X':'Y';
+   const plasticCorrect=(x>=y?'X':'Y')===target;
+   plastic.push(plasticCorrect?1:0);
+   frozen.push(t<5?1:0);
+ }
+ animateChart(
+   c,
+   [
+     {vals:plastic,label:'Plastic memory'},
+     {vals:frozen,label:'Frozen memory'}
+   ],
+   ['#E8A33D','#9B8CFF'],
+   'comparisonStatus',
+   `Same toy update · η ${lr.toFixed(2)} · retention ${ret.toFixed(2)}`,
+   {switchIndex:4, yLabel:'Recall accuracy (01)', xLabel:'experiment steps', xTicks:[0,1,2,3,4,5,6,7,8,9]}
+ );
+ $('adaptDelay').textContent = flipStep===null
+   ? `Not within 5 post-switch writes at η=${lr.toFixed(2)}`
+   : `${flipStep} write${flipStep===1?'':'s'} after the switch`;
+}
+
+function resizeChartCanvas(canvas){
+  const rect = canvas.getBoundingClientRect();
+  const cssW = Math.max(280, Math.round(rect.width));
+  const cssH = Math.max(220, Math.round(rect.height));
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:cssW,h:cssH};
+}
+
+function animateChart(canvas,series,colors,statusId,message,options={}){
+  let frames = prefersReducedMotion ? 1 : 18, frame=0;
+  const drawFrame=()=>{
+    frame++;
+    const progress=frame/frames;
+    const partial=series.map(s=>({
+      vals:s.vals.map((v,i)=>{
+        const maxIndex=Math.floor((s.vals.length-1)*progress);
+        return i<=maxIndex ? v : s.vals[Math.max(0,maxIndex)];
+      }),
+      label:s.label
+    }));
+    drawChart(canvas,partial,colors,options);
+    if(frame<frames) requestAnimationFrame(drawFrame);
+    else if(statusId) $(statusId).textContent='✓ '+message;
+  };
+  drawFrame();
+}
+
+function drawChart(canvas,series,colors,options={}){
+  const {ctx,w,h}=resizeChartCanvas(canvas);
+  const mobile=w<520;
+  const pad=mobile?42:58, top=34, right=mobile?12:22, bottom=40;
+  const iw=w-pad-right, ih=h-top-bottom;
+  ctx.clearRect(0,0,w,h);
+
+  // Grid and numeric y-axis ticks.
+  ctx.strokeStyle='#262b35'; ctx.lineWidth=1;
+  ctx.font=`${mobile?11:12}px system-ui`; ctx.textAlign='right';
+  for(let k=0;k<=4;k++){
+    const y=top+ih*k/4;
+    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-right,y);ctx.stroke();
+    ctx.fillStyle='#8b93a5';ctx.fillText((1-k/4).toFixed(1),pad-7,y+4);
+  }
+
+  // Axes.
+  ctx.strokeStyle='#343a46';
+  ctx.beginPath();ctx.moveTo(pad,top);ctx.lineTo(pad,top+ih);ctx.lineTo(w-right,top+ih);ctx.stroke();
+
+  // Numeric x-axis ticks. These make the experiment steps directly readable.
+  if(options.xTicks){
+    ctx.save();
+    ctx.fillStyle='#8b93a5';
+    ctx.font=`${mobile?10:11}px system-ui`;
+    ctx.textAlign='center';
+    options.xTicks.forEach(t=>{
+      const maxT=Math.max(1, series[0].vals.length-1);
+      const tx=pad+(iw*t/maxT);
+      ctx.strokeStyle='#343a46';
+      ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(tx,top+ih);ctx.lineTo(tx,top+ih+5);ctx.stroke();
+      ctx.fillText(String(t),tx,top+ih+17);
+    });
+    ctx.restore();
+  }
+
+  // Horizontal axis descriptors  much easier to read on phones than rotated text.
+  ctx.textAlign='left';
+  ctx.fillStyle='#aeb5c4';
+  ctx.font=`600 ${mobile?10.5:11}px system-ui`;
+  ctx.fillText(options.yLabel || 'Value (01)',pad,16);
+
+  if(options.switchIndex!==undefined){
+    const sx=pad+(iw*options.switchIndex/(series[0].vals.length-1));
+    ctx.save();
+    ctx.setLineDash([6,5]);ctx.strokeStyle='#687080';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(sx,top);ctx.lineTo(sx,top+ih);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Marker stays near the top, never on top of the x-axis.
+    const label=mobile?'SWITCH':'ENVIRONMENT SWITCH';
+    ctx.fillStyle='#c7cdda';ctx.font=`700 ${mobile?10:12}px system-ui`;
+    ctx.textAlign=sx>w*0.65?'right':sx<w*0.35?'left':'center';
+    const lx=sx>w*0.65?sx-6:sx<w*0.35?sx+6:sx;
+    ctx.fillText(label,lx,top+15);
+
+    ctx.font=`${mobile?10:11}px system-ui`;ctx.fillStyle='#8b93a5';ctx.textAlign='center';
+    ctx.fillText('A → X',pad+(sx-pad)/2,top+ih+24);
+    ctx.fillText('A → Y',sx+(w-right-sx)/2,top+ih+24);
+    ctx.restore();
+  }
+
+  if(options.markIndex!==undefined){
+    const mi=options.markIndex;
+    const mx=pad+(iw*mi/(series[0].vals.length-1));
+    ctx.save();
+    ctx.setLineDash([4,4]);ctx.strokeStyle='#4FD1C5';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(mx,top);ctx.lineTo(mx,top+ih);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#b7c0ce';ctx.font=`700 ${mobile?10:11}px system-ui`;
+    ctx.textAlign=mx>w*0.72?'right':mx<w*0.28?'left':'center';
+    const lx=mx>w*0.72?mx-5:mx<w*0.28?mx+5:mx;
+    ctx.fillText(`N = ${mi}`,lx,top+15);
+    ctx.restore();
+  }
+
+  series.forEach((s,si)=>{
+    ctx.beginPath();
+    s.vals.forEach((v,i)=>{
+      const px=pad+(iw*i/(s.vals.length-1));
+      const py=top+ih*(1-Math.max(0,Math.min(1,v)));
+      i?ctx.lineTo(px,py):ctx.moveTo(px,py);
+    });
+    ctx.strokeStyle=colors[si];ctx.lineWidth=3;ctx.stroke();
+
+    s.vals.forEach((v,i)=>{
+      const px=pad+(iw*i/(s.vals.length-1));
+      const py=top+ih*(1-Math.max(0,Math.min(1,v)));
+      ctx.fillStyle=colors[si];ctx.beginPath();ctx.arc(px,py,mobile?2.7:3,0,Math.PI*2);ctx.fill();
+    });
+  });
+
+  ctx.fillStyle='#8b93a5';ctx.font=`${mobile?10.5:12}px system-ui`;ctx.textAlign='center';
+  ctx.fillText(options.xLabel || 'time / experiment steps',w/2,h-10);
+}
+
+
+function clearComparisonChart(){
+ const c=$('compareChart');
+ const cssW=Math.max(280,Math.floor(c.clientWidth||c.parentElement?.clientWidth||760));
+ const cssH=260, dpr=Math.min(window.devicePixelRatio||1,2);
+ c.width=Math.round(cssW*dpr); c.height=Math.round(cssH*dpr);
+ const ctx=c.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+ ctx.clearRect(0,0,cssW,cssH);
+ ctx.fillStyle='#8b93a5';ctx.font='700 15px system-ui';ctx.textAlign='center';
+ ctx.fillText('Run the comparison to reveal the adaptation trade-off',cssW/2,cssH/2);
+ ctx.font='12px system-ui';ctx.fillText('The graph will use the same toy update as the experiment above.',cssW/2,cssH/2+25);
+ ctx.textAlign='left';
+ $('comparisonStatus').textContent='Ready  run the counterfactual comparison.';
+}
+
+function animateHeroTrace(){
+ const path=$('heroPath');
+ if(!path) return;
+ if(prefersReducedMotion){ path.style.strokeDasharray='none'; return; }
+ const len = path.getTotalLength();
+ path.style.strokeDasharray = len;
+ path.style.strokeDashoffset = len;
+ path.getBoundingClientRect(); // force reflow
+ path.style.transition = 'stroke-dashoffset 1.4s ease-out';
+ requestAnimationFrame(()=>{ path.style.strokeDashoffset = '0'; });
+}
+
+let chartResizeTimer=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(chartResizeTimer);
+  chartResizeTimer=setTimeout(()=>{
+    runDecay();
+    runInterference();
+    const c=$('compareChart');
+    if(c.dataset.hasComparison==='1') runComparison();
+    else clearComparisonChart();
+  },150);
+});
+
+resetAll();runDecay();runInterference();clearComparisonChart();animateHeroTrace();
+</script>
+</body>
+</html>
